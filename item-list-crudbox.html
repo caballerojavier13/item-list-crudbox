@@ -1,0 +1,345 @@
+<!--
+@license
+Copyright (c) 2015 Peter Kaske <p.kaske@gmail.com>. All rights reserved.
+This code may only be used under the MIT license found at http://opensource.org/licenses/MIT.
+Or see the LICENSE file that comes with this code.
+-->
+
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../fe-button/fe-button.html">
+<link rel="import" href="../iron-icon/iron-icon.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+<link rel="import" href="../icon-popup/icon-popup.html">
+<link rel="import" href="../iron-icons/editor-icons.html">
+<link rel="import" href="../flex-toolbar/flex-toolbar.html">
+<link rel="import" href="../flex-toolbar/flex-column.html">
+<link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../iron-a11y-keys-behavior/iron-a11y-keys-behavior.html">
+
+<!--
+Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
+
+@group GUI Elements
+@element item-list-crudbox
+@demo demo/index.html
+@homepage https://pkaske.github.io/item-list-crudbox
+-->
+
+<dom-module id="item-list-crudbox">
+  <style>
+    :host {
+      display: block;
+    }
+
+    :host [hidden] {
+      display: none;
+    }
+
+    .label {
+      @apply(--layout-flex);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding-right: 20px;
+    }
+
+    flex-column {
+      --flex-column: {
+        height: 42px;
+        padding: 0 10px;
+        background-color: #039BE5;
+        color: #1b1b1b;
+      };
+    }
+
+    .single-button {
+      @apply(--layout);
+      padding: 6px;
+      transition: color 0.3s, opacity 0.3s;
+      color: #E1F5FE;
+    }
+
+    .single-button:hover {
+      color: #FFFFFF;
+    }
+
+    .single-button[disabled] {
+      opacity: 0.5;
+    }
+
+    icon-popup {
+      --icon-popup-icon: {
+        color: #E1F5FE;
+        transition: color 0.3s, opacity 0.3s;
+        @apply(--layout);
+      };
+
+      --icon-popup-icon-hover: {
+        color: #FFFFFF;
+      };
+    }
+
+    icon-popup[disabled] fe-button {
+      opacity: 0.5;
+    }
+
+    iron-icon {
+      transition: color 0.3s;
+      width: 16px;
+      height: 16px;
+      color: #E1F5FE;
+      cursor: pointer;
+    }
+
+    iron-icon:hover {
+      color: #FFFFFF;
+    }
+
+    paper-input {
+      transition: width 0.3s;
+      width: 0px;
+
+      --paper-input-container-input-color: #FFFFFF;
+      --paper-input-container-color: #E1F5FE;
+      --paper-input-container-focus-color: #FFFFFF;
+      --paper-input-container-underline: {
+        /*display: none;*/
+      };
+      --paper-input-container-underline-focus: {
+        display: none;
+      };
+      --paper-input-container-input: {
+        font-size: 0.8em;
+      };
+    }
+
+    paper-input.show {
+      width: 150px;
+      margin-left: 5px;
+    }
+
+    paper-input iron-icon {
+      @apply(--layout-self-center);
+      cursor: pointer;
+    }
+
+    paper-input iron-icon:hover {
+      color: #FFFFFF;
+    }
+
+    paper-input[focused] {
+      color: #FFFFFF;
+    }
+
+    flex-column.search-column {
+      --flex-column-content: {
+        @apply(--layout-center);
+      };
+    }
+
+    .list-wrap {
+      border-bottom: solid 1px #EEEEEE;
+      background: #FAFAFA;
+      position: relative;
+      height: 200px;
+    }
+
+    .list-wrap ::content item-list {
+      margin: 5px 0;
+      overflow: hidden;
+      overflow-y: auto;
+      @apply(--layout-fit);
+    }
+
+    .empty-hint {
+      @apply(--layout-fit);
+      @apply(--layout-horizontal);
+      @apply(--layout-center-center);
+    }
+  </style>
+  <template>
+
+    <!-- Toolbar -->
+    <flex-toolbar>
+
+      <!-- CRUD actions -->
+      <flex-column wrap flex="1" center no-scrolling>
+        <fe-button hidden$="[[!_computeCreate(actions)]]" class="single-button" icon="add"></fe-button>
+        <fe-button id="btnEdit" hidden$="[[!_computeUpdate(actions)]]" class="single-button" icon="editor:mode-edit"></fe-button>
+        <icon-popup id="btnDelete" hidden$="[[!_computeDelete(actions)]]">
+          <fe-button icon="delete"></fe-button>
+          <div popup>
+            Foo
+          </div>
+        </icon-popup>
+      </flex-column>
+
+      <!-- Item filter -->
+      <flex-column class="search-column" center no-scrolling>
+        <iron-icon icon="search" on-tap="_onTapSearch"></iron-icon>
+        <paper-input id="search" no-label-float on-blur="_onBlurSearch" on-value-changed="_onSearchTermChanged">
+          <iron-icon icon="backspace" on-tap="_onTaClearSearch" suffix></iron-icon>
+        </paper-input>
+      </flex-column>
+
+    </flex-toolbar>
+
+    <!-- The actual item list -->
+    <div class="list-wrap">
+      <content id="itemListContent" select="item-list"></content>
+
+      <!-- This is shown if the search didn't find anything -->
+      <template is="dom-if" if="[[!_showsItems]]">
+        <div class="empty-hint">
+          <content select="[empty-label]"></content>
+        </div>
+      </template>
+    </div>
+
+  </template>
+</dom-module>
+<script>
+  Polymer({
+    is: 'item-list-crudbox',
+
+    properties: {
+      /**
+       * Item actions to make available.
+       * Each char activates the respective action:
+       * c = create action
+       * u = update action
+       * d = delete action
+       */
+      actions: {
+        type: String,
+        value: 'cud'
+      },
+
+      _list: {
+        type: Object
+      },
+
+      _listHasSelection: {
+        type: Boolean,
+        value: false
+      },
+
+      _selectionVisible: {
+        type: Boolean,
+        value: true
+      },
+
+      _showsItems: {
+        type: Boolean,
+        value: true
+      },
+
+      _lastSearchTerm: {
+        type: String
+      }
+    },
+
+    behaviors: [
+      Polymer.IronA11yKeysBehavior
+    ],
+
+    get list() {
+      if (!this._list) {
+        this._list = Polymer.dom(this.$.itemListContent).getDistributedNodes()[0];
+      }
+      return this._list;
+    },
+
+    attached: function() {
+      this.list.addEventListener('selection-changed', this._onSelectionChanged.bind(this));
+      this.list.addEventListener('items-filtered', this._onItemsFiltered.bind(this));
+    },
+
+    dettached: function() {
+      this.list.removeEventListener('selection-changed', this._onSelectionChanged);
+      this.list.removeEventListener('items-filtered', this._onItemsFiltered);
+    },
+
+    _onSelectionChanged: function(e) {
+      if (e.detail.value) {
+        this._enabledBtns();
+      }
+    },
+
+    _onItemsFiltered: function(e) {
+      var filteredItems = e.detail;
+      this._showsItems = filteredItems.length > 0;
+
+      for (var i in filteredItems) {
+        if (this.get(this.list.paths.id, filteredItems[i]) == this.list.selection) {
+          this._enabledBtns();
+          return;
+        }
+      }
+
+      this._disabledBtns();
+    },
+
+    _disabledBtns: function() {
+      this.toggleAttribute('disabled', true, this.$.btnEdit);
+      this.toggleAttribute('disabled', true, this.$.btnDelete);
+    },
+
+    _enabledBtns: function() {
+      this.toggleAttribute('disabled', false, this.$.btnEdit);
+      this.toggleAttribute('disabled', false, this.$.btnDelete);
+    },
+
+    /** Try to restore the item selection after some model manipulation was done */
+    _restoreSelection: function() {
+      var oldSelection = this.selection;
+      this.$.list.select(null);
+      this.async(function() {
+        if (Polymer.dom(this.$.list).querySelector('[item-id="' + oldSelection + '"]')) {
+          this.$.list.select(oldSelection);
+        }
+      });
+    },
+
+    _onSearchTermChanged: function(e) {
+      var term = e.detail.value;
+      if (term == this._lastSearchTerm) {
+        return;
+      }
+
+      this._lastSearchTerm = term;
+      this.async(function() {
+        this.list.filterTerm = term;
+      });
+    },
+
+    _onTapSearch: function() {
+      this.$.search.classList.toggle('show');
+      this.$.search.inputElement.focus();
+    },
+
+    _onTaClearSearch: function() {
+      this.$.search.value = '';
+      this.$.search.inputElement.focus();
+    },
+
+    _onBlurSearch: function() {
+      if (this.$.search.value.length == 0) {
+        this.$.search.classList.remove('show');
+      }
+    },
+
+    _computeCreate: function(actions) {
+      return actions.indexOf('c') != -1;
+    },
+
+    _computeUpdate: function(actions) {
+      return actions.indexOf('u') != -1;
+    },
+
+    _computeDelete: function(actions) {
+      return actions.indexOf('d') != -1;
+    }
+  });
+</script>

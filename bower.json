@@ -1,0 +1,33 @@
+{
+  "name": "item-list-crudbox",
+  "version": "1.0.0",
+  "authors": [
+    "Peter Kaske <p.kaske@gmail.com>"
+  ],
+  "description": "Box with basic CRUD and filter actions for `item-list`. Build with Polymer.",
+  "license": "MIT",
+  "keywords": [
+    "polymer",
+    "web-components",
+    "web-component",
+    "list",
+    "filter"
+  ],
+  "main": "item-list-crudbox.html",
+  "ignore": [
+    "/.*",
+    "/test/",
+    "/demo/"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.0.0",
+    "icon-popup": "^1.0.0",
+    "flex-toolbar": "pkaske/flex-toolbar#^1.0.0",
+    "fe-button": "pkaske/fe-button#^1.0.0",
+    "paper-input": "PolymerElements/paper-input#ixes",
+    "iron-a11y-keys": "PolymerElements/iron-a11y-keys#^1.0.0"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0"
+  }
+}
