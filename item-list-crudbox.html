@@ -16,6 +16,7 @@ Or see the LICENSE file that comes with this code.
 <link rel="import" href="../paper-input/paper-input.html">
 <link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../iron-a11y-keys-behavior/iron-a11y-keys-behavior.html">
+<link rel="import" href="../paper-styles/shadow.html">
 
 <!--
 Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
@@ -30,6 +31,8 @@ Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
   <style>
     :host {
       display: block;
+      overflow: hidden;
+      @apply(--layout-vertical);
     }
 
     :host [hidden] {
@@ -45,6 +48,9 @@ Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
     }
 
     flex-column {
+      position: relative;
+      z-index: 2;
+
       --flex-column: {
         height: 42px;
         padding: 0 10px;
@@ -138,18 +144,40 @@ Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
       };
     }
 
+    .sliderPanel {
+      transition: transform 0.3s;
+      transform: translateY(-110%);
+      position: absolute;
+      left: 5px;
+      right: 5px;
+      top: 0;
+      margin-bottom: 20px;
+      overflow: hidden;
+      overflow-y: auto;
+      padding: 10px;
+      background: #F5F5F5;
+      z-index: 1;
+      @apply(--shadow-elevation-2dp);
+    }
+
+    .sliderPanel.show {
+      transform: translateY(0%);
+    }
+
     .list-wrap {
+      position: relative;
       border-bottom: solid 1px #EEEEEE;
       background: #FAFAFA;
-      position: relative;
-      height: 200px;
+      overflow: hidden;
+      @apply(--layout-flex);
+      @apply(--item-list-crudbox-list);
     }
 
     .list-wrap ::content item-list {
       margin: 5px 0;
+      height: 100%;
       overflow: hidden;
       overflow-y: auto;
-      @apply(--layout-fit);
     }
 
     .empty-hint {
@@ -165,20 +193,15 @@ Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
 
       <!-- CRUD actions -->
       <flex-column wrap flex="1" center no-scrolling>
-        <fe-button hidden$="[[!_computeCreate(actions)]]" class="single-button" icon="add"></fe-button>
-        <fe-button id="btnEdit" hidden$="[[!_computeUpdate(actions)]]" class="single-button" icon="editor:mode-edit"></fe-button>
-        <icon-popup id="btnDelete" hidden$="[[!_computeDelete(actions)]]">
-          <fe-button icon="delete"></fe-button>
-          <div popup>
-            Foo
-          </div>
-        </icon-popup>
+        <fe-button on-tap="_onTapAdd" hidden$="[[!_computeCreate(actions)]]" class="single-button" icon="add"></fe-button>
+        <fe-button id="btnEdit" on-tap="_onTapEdit" hidden$="[[!_computeUpdate(actions)]]" class="single-button" icon="editor:mode-edit"></fe-button>
+        <fe-button id="btnDelete" on-tap="_onTapDelete" hidden$="[[!_computeDelete(actions)]]" class="single-button" icon="delete"></fe-button>
       </flex-column>
 
       <!-- Item filter -->
       <flex-column class="search-column" center no-scrolling>
         <iron-icon icon="search" on-tap="_onTapSearch"></iron-icon>
-        <paper-input id="search" no-label-float on-blur="_onBlurSearch" on-value-changed="_onSearchTermChanged">
+        <paper-input id="search" no-label-float on-blur="_onBlurSearch" on-value-changed="_onSearchTermChanged" on-keydown="_onSearchTermKeyDown">
           <iron-icon icon="backspace" on-tap="_onTaClearSearch" suffix></iron-icon>
         </paper-input>
       </flex-column>
@@ -187,6 +210,19 @@ Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
 
     <!-- The actual item list -->
     <div class="list-wrap">
+
+      <div id="addWrap" class="sliderPanel" hidden$="[[_hasAddContent]]">
+        <content select="[add-item]"></content>
+      </div>
+
+      <div id="editWrap" class="sliderPanel" hidden$="[[_hasEditContent]]">
+        <content select="[edit-item]"></content>
+      </div>
+
+      <div id="deleteWrap" class="sliderPanel" hidden$="[[_hasDeleteContent]]">
+        <content select="[delete-item]"></content>
+      </div>
+
       <content id="itemListContent" select="item-list"></content>
 
       <!-- This is shown if the search didn't find anything -->
@@ -237,12 +273,23 @@ Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
 
       _lastSearchTerm: {
         type: String
+      },
+
+      _hasAddContent: {
+        type: Boolean,
+        value: false
+      },
+
+      _hasEditContent: {
+        type: Boolean,
+        value: false
+      },
+
+      _hasDeleteContent: {
+        type: Boolean,
+        value: false
       }
     },
-
-    behaviors: [
-      Polymer.IronA11yKeysBehavior
-    ],
 
     get list() {
       if (!this._list) {
@@ -254,11 +301,23 @@ Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
     attached: function() {
       this.list.addEventListener('selection-changed', this._onSelectionChanged.bind(this));
       this.list.addEventListener('items-filtered', this._onItemsFiltered.bind(this));
+      this.list.addEventListener('items-added', this._onItemsAdded.bind(this));
     },
 
-    dettached: function() {
+    detached: function() {
       this.list.removeEventListener('selection-changed', this._onSelectionChanged);
       this.list.removeEventListener('items-filtered', this._onItemsFiltered);
+      this.list.removeEventListener('items-added', this._onItemsAdded);
+      this.list.removeEventListener('item-edited', this._onItemEdited);
+    },
+
+    ready: function() {
+      var cAddWrap = Polymer.dom(this.$.addWrap).querySelector('content');
+      var cEditWrap = Polymer.dom(this.$.editWrap).querySelector('content');
+      var cDeleteWrap = Polymer.dom(this.$.deleteWrap).querySelector('content');
+      this._hasAddContent = Polymer.dom(cAddWrap).getDistributedNodes().length == 0;
+      this._hasEditContent = Polymer.dom(cEditWrap).getDistributedNodes().length == 0;
+      this._hasDeleteContent = Polymer.dom(cDeleteWrap).getDistributedNodes().length == 0;
     },
 
     _onSelectionChanged: function(e) {
@@ -278,7 +337,18 @@ Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
         }
       }
 
+      this.$.editWrap.classList.remove('show');
+      this.$.deleteWrap.classList.remove('show');
       this._disabledBtns();
+    },
+
+    _onItemsAdded: function() {
+      this.$.addWrap.classList.remove('show');
+    },
+
+    _onItemEdited: function() {
+      this.$.editWrap.classList.remove('show');
+      this.list.removeEventListener('item-edited', this._onItemEdited);
     },
 
     _disabledBtns: function() {
@@ -291,17 +361,6 @@ Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
       this.toggleAttribute('disabled', false, this.$.btnDelete);
     },
 
-    /** Try to restore the item selection after some model manipulation was done */
-    _restoreSelection: function() {
-      var oldSelection = this.selection;
-      this.$.list.select(null);
-      this.async(function() {
-        if (Polymer.dom(this.$.list).querySelector('[item-id="' + oldSelection + '"]')) {
-          this.$.list.select(oldSelection);
-        }
-      });
-    },
-
     _onSearchTermChanged: function(e) {
       var term = e.detail.value;
       if (term == this._lastSearchTerm) {
@@ -312,6 +371,34 @@ Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
       this.async(function() {
         this.list.filterTerm = term;
       });
+    },
+
+    _onSearchTermKeyDown: function(e) {
+      if (e.keyCode == 27) {
+        e.preventDefault();
+        this.$.search.value = '';
+        this.$.search.blur();
+        this.list.focus();
+        return false;
+      }
+    },
+
+    _onTapAdd: function() {
+      this.$.addWrap.classList.toggle('show');
+    },
+
+    _onTapEdit: function() {
+      if (!this.$.editWrap.classList.contains('show')) {
+        this.list.addEventListener('item-edited', this._onItemEdited.bind(this));
+        this.fire('start-edit-item', { item: this.list.selectedItem });
+      } else {
+        this.list.removeEventListener('item-edited', this._onItemEdited);
+      }
+      this.$.editWrap.classList.toggle('show');
+    },
+
+    _onTapDelete: function() {
+      this.$.deleteWrap.classList.toggle('show');
     },
 
     _onTapSearch: function() {

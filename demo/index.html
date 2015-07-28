@@ -20,21 +20,79 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   </script>
   <link rel="import" href="../item-list-crudbox.html">
   <link rel="import" href="../../item-list/item-list.html">
+  <link rel="import" href="../../iron-flex-layout/iron-flex-layout.html">
+  <link rel="import" href="../../paper-input/paper-input.html">
+  <link rel="import" href="../../paper-button/paper-button.html">
+  <link rel="import" href="../../iron-form/iron-form.html">
+  <link rel="import" href="../../fe-button/fe-button.html">
 
   <style is="custom-style">
       item-list-crudbox {
         display: inline-block;
-        width: 400px;
-        height: 300px;
+
+        --item-list-crudbox-list: {
+          width: 400px;
+          height: 200px;
+        };
+      }
+
+      item-list {
+        --item-list-item: {
+          padding: 15px 10px;
+          @apply(--layout-horizontal);
+          @apply(--layout-center);
+        };
+      }
+
+      form {
+        margin: 5px 0px;
+        @apply(--layout-horizontal);
+      }
+
+      form paper-input {
+        @apply(--layout-flex);
+      }
+
+      form paper-button {
+        margin-left: 20px;
+      }
+
+      [delete-item] {
+        @apply(--layout-horizontal);
+      }
+
+      [delete-item] > span {
+        @apply(--layout-flex);
       }
   </style>
 
 </head>
 <body style="">
   <div>
-    <item-list-crudbox>
+    <item-list-crudbox id="crudbox">
+      <div delete-item>
+        <span>Delete the selected item?</span>
+        <fe-button icon="close" id="cancelItemBtn" raised></fe-button>
+        <fe-button icon="check" id="deleteItemBtn" raised></fe-button>
+      </div>
+      <div add-item>
+        <form is="iron-form" id="addForm">
+          <paper-input no-label-float label="Name" name="itemName" required></paper-input>
+          <paper-button id="addItemBtn" raised>Add</paper-button>
+        </form>
+      </div>
+      <div edit-item>
+        <form is="iron-form" id="editForm">
+          <paper-input no-label-float label="Name" id="newName" name="itemName" required></paper-input>
+          <paper-button id="editItemBtn" raised>Save</paper-button>
+        </form>
+      </div>
       <div empty-label>No result</div>
-      <item-list id="toolbar-list" paths='{ "search": "name", "id": "id" }'></item-list>
+      <item-list id="toolbar-list" paths='{ "search": "name", "id": "id", "disabled": "disabled" }'>
+        <template>
+          <span>{{item.name}}</span>
+        </template>
+      </item-list>
     </item-list-crudbox>
   </div>
   <script>
@@ -58,7 +116,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
       {
         id: 4,
-        name: "Item 4"
+        name: "Item 4",
+        disabled: true
       },
       {
         id: 5,
@@ -77,17 +136,56 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         name: "Item 8"
       }
     ];
-    var toolbarList = document.getElementById('toolbar-list');
-    toolbarList.items = data;
 
-    setTimeout(function () {
-      data.push({
-        id: 'the-added-item',
-        name: "A added item"
-      });
-      data.splice(1, 1);
-      toolbarList.setItems(data);
-    }, 5000);
+    var crudbox = document.getElementById('crudbox');
+    var list = document.getElementById('toolbar-list');
+    var addForm = document.getElementById('addForm');
+    var editForm = document.getElementById('editForm');
+    var submitAdd = document.getElementById('addItemBtn');
+    var submitEdit = document.getElementById('editItemBtn');
+    var delBtn = document.getElementById('deleteItemBtn');
+    var cancelBtn = document.getElementById('cancelItemBtn');
+    var newItemName = document.getElementById('newName');
+    var itemToEdit;
+
+    list.items = data;
+
+    addForm.addEventListener('iron-form-submit', function(e) {
+      list.addItems([{
+        id: data.length,
+        name: e.detail.itemName
+      }]);
+    });
+
+    editForm.addEventListener('iron-form-submit', function(e) {
+      itemToEdit.name = e.detail.itemName;
+      list.editItem(itemToEdit, itemToEdit);
+    });
+
+    submitAdd.addEventListener('click', function(e) {
+      addForm.submit();
+    });
+
+    submitEdit.addEventListener('click', function(e) {
+      editForm.submit();
+    });
+
+    delBtn.addEventListener('click', function() {
+      list.removeItem(list.selectedItem);
+    });
+
+    crudbox.addEventListener('start-edit-item', function(e) {
+      itemToEdit = e.detail.item;
+      newItemName.value = itemToEdit.name;
+    });
+
+    list.addEventListener('item-removed', function(e) {
+      console.log(e.detail);
+    });
+
+    list.addEventListener('item-edited', function(e) {
+      console.log(e.detail);
+    });
   });
   </script>
 </body>
