@@ -1,0 +1,48 @@
+{
+  "name": "item-list-crudbox",
+  "authors": [
+    "Peter Kaske <p.kaske@gmail.com>"
+  ],
+  "description": "Box with basic CRUD and filter actions for `item-list`. Build with Polymer.",
+  "license": "MIT",
+  "keywords": [
+    "polymer",
+    "web-components",
+    "web-component",
+    "list",
+    "filter"
+  ],
+  "main": "item-list-crudbox.html",
+  "ignore": [
+    "/.*",
+    "/test/",
+    "/demo/"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.0.0",
+    "icon-popup": "^1.0.0",
+    "flex-toolbar": "pkaske/flex-toolbar#^1.0.0",
+    "fe-button": "pkaske/fe-button#^1.0.0",
+    "paper-input": "PolymerElements/paper-input#^1.0.0",
+    "iron-a11y-keys": "PolymerElements/iron-a11y-keys#^1.0.0",
+    "item-list": "pkaske/item-list#^1.0.0",
+    "paper-styles": "PolymerElements/paper-styles#^1.0.0"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+    "iron-flex-layout": "PolymerElements/iron-flex-layout#^1.0.0",
+    "paper-button": "PolymerElements/paper-button#^1.0.0",
+    "iron-form": "PolymerElements/iron-form#^1.0.0"
+  },
+  "homepage": "https://github.com/pkaske/item-list-crudbox",
+  "_release": "ef0dcc241f",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "ef0dcc241f5bcb3ac4f931a13da2f79271a34423"
+  },
+  "_source": "git://github.com/pkaske/item-list-crudbox.git",
+  "_target": "master",
+  "_originalSource": "pkaske/item-list-crudbox",
+  "_direct": true
+}

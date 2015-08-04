@@ -1,0 +1,192 @@
+<!doctype html>
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <title>item-list-crudbox Demo</title>
+  <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+  <script>
+    // window.Polymer = window.Polymer || {};
+    // window.Polymer.dom = 'shadow';
+  </script>
+  <link rel="import" href="../item-list-crudbox.html">
+  <link rel="import" href="../../item-list/item-list.html">
+  <link rel="import" href="../../iron-flex-layout/iron-flex-layout.html">
+  <link rel="import" href="../../paper-input/paper-input.html">
+  <link rel="import" href="../../paper-button/paper-button.html">
+  <link rel="import" href="../../iron-form/iron-form.html">
+  <link rel="import" href="../../fe-button/fe-button.html">
+
+  <style is="custom-style">
+      item-list-crudbox {
+        display: inline-block;
+
+        --item-list-crudbox-list: {
+          width: 400px;
+          height: 200px;
+        };
+      }
+
+      item-list {
+        --item-list-item: {
+          padding: 15px 10px;
+          @apply(--layout-horizontal);
+          @apply(--layout-center);
+        };
+      }
+
+      form {
+        margin: 5px 0px;
+        @apply(--layout-horizontal);
+      }
+
+      form paper-input {
+        @apply(--layout-flex);
+      }
+
+      form paper-button {
+        margin-left: 20px;
+      }
+
+      [delete-item] {
+        @apply(--layout-horizontal);
+      }
+
+      [delete-item] > span {
+        @apply(--layout-flex);
+      }
+  </style>
+
+</head>
+<body style="">
+  <div>
+    <item-list-crudbox id="crudbox">
+      <div delete-item>
+        <span>Delete the selected item?</span>
+        <fe-button icon="close" id="cancelItemBtn" raised></fe-button>
+        <fe-button icon="check" id="deleteItemBtn" raised></fe-button>
+      </div>
+      <div add-item>
+        <form is="iron-form" id="addForm">
+          <paper-input no-label-float label="Name" name="itemName" required></paper-input>
+          <paper-button id="addItemBtn" raised>Add</paper-button>
+        </form>
+      </div>
+      <div edit-item>
+        <form is="iron-form" id="editForm">
+          <paper-input no-label-float label="Name" id="newName" name="itemName" required></paper-input>
+          <paper-button id="editItemBtn" raised>Save</paper-button>
+        </form>
+      </div>
+      <div empty-label>No result</div>
+      <item-list id="toolbar-list" paths='{ "search": "name", "id": "id", "disabled": "disabled" }'>
+        <template>
+          <span>{{item.name}}</span>
+        </template>
+      </item-list>
+    </item-list-crudbox>
+  </div>
+  <script>
+  window.addEventListener('WebComponentsReady', function(e) {
+    var data = [
+      {
+        id: 0,
+        name: "Item 0"
+      },
+      {
+        id: 1,
+        name: "Item 1"
+      },
+      {
+        id: 2,
+        name: "Item 2"
+      },
+      {
+        id: 3,
+        name: "Item 3"
+      },
+      {
+        id: 4,
+        name: "Item 4",
+        disabled: true
+      },
+      {
+        id: 5,
+        name: "Item 5"
+      },
+      {
+        id: 6,
+        name: "Item 6"
+      },
+      {
+        id: 7,
+        name: "Item 7"
+      },
+      {
+        id: 8,
+        name: "Item 8"
+      }
+    ];
+
+    var crudbox = document.getElementById('crudbox');
+    var list = document.getElementById('toolbar-list');
+    var addForm = document.getElementById('addForm');
+    var editForm = document.getElementById('editForm');
+    var submitAdd = document.getElementById('addItemBtn');
+    var submitEdit = document.getElementById('editItemBtn');
+    var delBtn = document.getElementById('deleteItemBtn');
+    var cancelBtn = document.getElementById('cancelItemBtn');
+    var newItemName = document.getElementById('newName');
+    var itemToEdit;
+
+    list.items = data;
+
+    addForm.addEventListener('iron-form-submit', function(e) {
+      list.addItems([{
+        id: data.length,
+        name: e.detail.itemName
+      }]);
+    });
+
+    editForm.addEventListener('iron-form-submit', function(e) {
+      itemToEdit.name = e.detail.itemName;
+      list.editItem(itemToEdit, itemToEdit);
+    });
+
+    submitAdd.addEventListener('click', function(e) {
+      addForm.submit();
+    });
+
+    submitEdit.addEventListener('click', function(e) {
+      editForm.submit();
+    });
+
+    delBtn.addEventListener('click', function() {
+      list.removeItem(list.selectedItem);
+    });
+
+    crudbox.addEventListener('start-edit-item', function(e) {
+      itemToEdit = e.detail.item;
+      newItemName.value = itemToEdit.name;
+    });
+
+    list.addEventListener('item-removed', function(e) {
+      console.log(e.detail);
+    });
+
+    list.addEventListener('item-edited', function(e) {
+      console.log(e.detail);
+    });
+  });
+  </script>
+</body>
+</html>
