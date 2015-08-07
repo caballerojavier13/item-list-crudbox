@@ -88,6 +88,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </form>
       </div>
       <div empty-label>No result</div>
+      <div no-items-label>No items</div>
       <item-list id="toolbar-list" paths='{ "search": "name", "id": "id", "disabled": "disabled" }'>
         <template>
           <span>{{item.name}}</span>
@@ -171,7 +172,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     });
 
     delBtn.addEventListener('click', function() {
-      list.removeItem(list.selectedItem);
+      crudbox.deleteSelectedItem();
+    });
+
+    cancelBtn.addEventListener('click', function() {
+      crudbox.cancelDelete();
     });
 
     crudbox.addEventListener('start-edit-item', function(e) {

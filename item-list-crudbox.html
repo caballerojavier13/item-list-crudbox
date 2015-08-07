@@ -180,7 +180,7 @@ Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
       overflow-y: auto;
     }
 
-    .empty-hint {
+    .empty-hint, .no-items-hint {
       @apply(--layout-fit);
       @apply(--layout-horizontal);
       @apply(--layout-center-center);
@@ -231,6 +231,13 @@ Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
           <content select="[empty-label]"></content>
         </div>
       </template>
+
+      <!-- This is shown if no items exist -->
+      <template is="dom-if" if="[[!_hasItems]]">
+        <div class="no-items-hint">
+          <content select="[no-items-label]"></content>
+        </div>
+      </template>
     </div>
 
   </template>
@@ -271,6 +278,11 @@ Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
         value: true
       },
 
+      _hasItems: {
+        type: Boolean,
+        value: false
+      },
+
       _lastSearchTerm: {
         type: String
       },
@@ -299,9 +311,11 @@ Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
     },
 
     attached: function() {
+      this._disabledBtns();
       this.list.addEventListener('selection-changed', this._onSelectionChanged.bind(this));
       this.list.addEventListener('items-filtered', this._onItemsFiltered.bind(this));
       this.list.addEventListener('items-added', this._onItemsAdded.bind(this));
+      this.list.addEventListener('item-removed', this._onItemRemoved.bind(this));
     },
 
     detached: function() {
@@ -309,6 +323,7 @@ Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
       this.list.removeEventListener('items-filtered', this._onItemsFiltered);
       this.list.removeEventListener('items-added', this._onItemsAdded);
       this.list.removeEventListener('item-edited', this._onItemEdited);
+      this.list.removeEventListener('item-removed', this._onItemRemoved);
     },
 
     ready: function() {
@@ -320,6 +335,15 @@ Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
       this._hasDeleteContent = Polymer.dom(cDeleteWrap).getDistributedNodes().length == 0;
     },
 
+    deleteSelectedItem: function() {
+      this.list.removeItem(this.list.selectedItem);
+      this.$.deleteWrap.classList.remove('show');
+    },
+
+    cancelDelete: function() {
+      this.$.deleteWrap.classList.remove('show');
+    },
+
     _onSelectionChanged: function(e) {
       if (e.detail.value) {
         this._enabledBtns();
@@ -328,7 +352,7 @@ Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
 
     _onItemsFiltered: function(e) {
       var filteredItems = e.detail;
-      this._showsItems = filteredItems.length > 0;
+      this._hasItems = this._showsItems = filteredItems.length > 0;
 
       for (var i in filteredItems) {
         if (this.get(this.list.paths.id, filteredItems[i]) == this.list.selection) {
@@ -344,11 +368,16 @@ Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
 
     _onItemsAdded: function() {
       this.$.addWrap.classList.remove('show');
+      this._hasItems = true;
     },
 
     _onItemEdited: function() {
       this.$.editWrap.classList.remove('show');
       this.list.removeEventListener('item-edited', this._onItemEdited);
+    },
+
+    _onItemRemoved: function() {
+      this._hasItems = this.list.items.length > 0;
     },
 
     _disabledBtns: function() {
@@ -388,6 +417,9 @@ Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
     },
 
     _onTapEdit: function() {
+      if (this.$.deleteWrap.classList.contains('show')) {
+        this.$.deleteWrap.classList.toggle('show');
+      }
       if (!this.$.editWrap.classList.contains('show')) {
         this.list.addEventListener('item-edited', this._onItemEdited.bind(this));
         this.fire('start-edit-item', { item: this.list.selectedItem });
@@ -398,6 +430,9 @@ Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
     },
 
     _onTapDelete: function() {
+      if (this.$.editWrap.classList.contains('show')) {
+        this.$.editWrap.classList.toggle('show');
+      }
       this.$.deleteWrap.classList.toggle('show');
     },
 
