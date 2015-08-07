@@ -175,7 +175,6 @@ Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
 
     .list-wrap ::content item-list {
       margin: 5px 0;
-      height: 100%;
       overflow: hidden;
       overflow-y: auto;
     }
@@ -352,7 +351,8 @@ Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
 
     _onItemsFiltered: function(e) {
       var filteredItems = e.detail;
-      this._hasItems = this._showsItems = filteredItems.length > 0;
+      this._showsItems = filteredItems.length > 0;
+      this._hasItems = this.list.items.length > 0;
 
       for (var i in filteredItems) {
         if (this.get(this.list.paths.id, filteredItems[i]) == this.list.selection) {
