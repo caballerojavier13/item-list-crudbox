@@ -21,7 +21,6 @@
   ],
   "dependencies": {
     "polymer": "Polymer/polymer#^1.0.0",
-    "icon-popup": "^1.0.0",
     "flex-toolbar": "pkaske/flex-toolbar#^1.0.0",
     "fe-button": "pkaske/fe-button#^1.0.0",
     "paper-input": "PolymerElements/paper-input#^1.0.0",
