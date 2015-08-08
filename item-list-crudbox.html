@@ -9,7 +9,6 @@ Or see the LICENSE file that comes with this code.
 <link rel="import" href="../fe-button/fe-button.html">
 <link rel="import" href="../iron-icon/iron-icon.html">
 <link rel="import" href="../iron-icons/iron-icons.html">
-<link rel="import" href="../icon-popup/icon-popup.html">
 <link rel="import" href="../iron-icons/editor-icons.html">
 <link rel="import" href="../flex-toolbar/flex-toolbar.html">
 <link rel="import" href="../flex-toolbar/flex-column.html">
@@ -56,6 +55,8 @@ Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
         padding: 0 10px;
         background-color: #039BE5;
         color: #1b1b1b;
+
+        @apply(--item-list-crudbox-toolbar);
       };
     }
 
@@ -64,30 +65,20 @@ Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
       padding: 6px;
       transition: color 0.3s, opacity 0.3s;
       color: #E1F5FE;
+
+      @apply(--item-list-crudbox-button);
     }
 
     .single-button:hover {
       color: #FFFFFF;
+
+      @apply(--item-list-crudbox-button-hover);
     }
 
     .single-button[disabled] {
       opacity: 0.5;
-    }
 
-    icon-popup {
-      --icon-popup-icon: {
-        color: #E1F5FE;
-        transition: color 0.3s, opacity 0.3s;
-        @apply(--layout);
-      };
-
-      --icon-popup-icon-hover: {
-        color: #FFFFFF;
-      };
-    }
-
-    icon-popup[disabled] fe-button {
-      opacity: 0.5;
+      @apply(--item-list-crudbox-button-disabled);
     }
 
     iron-icon {
@@ -96,21 +87,27 @@ Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
       height: 16px;
       color: #E1F5FE;
       cursor: pointer;
+
+      @apply(--item-list-crudbox-icon);
     }
 
     iron-icon:hover {
       color: #FFFFFF;
+
+      @apply(--item-list-crudbox-icon-hover);
     }
 
     paper-input {
       transition: width 0.3s;
       width: 0px;
 
-      --paper-input-container-input-color: #FFFFFF;
-      --paper-input-container-color: #E1F5FE;
-      --paper-input-container-focus-color: #FFFFFF;
+      --paper-input-container-input-color: var(--item-list-crudbox-search-input-color, #FFFFFF);
+      --paper-input-container-color: var(--item-list-crudbox-search-color, #E1F5FE);
+      --paper-input-container-focus-color: var(--item-list-crudbox-search-focus-color, #FFFFFF);
       --paper-input-container-underline: {
         /*display: none;*/
+
+        @apply(--item-list-crudbox-input-underline);
       };
       --paper-input-container-underline-focus: {
         display: none;
@@ -132,10 +129,14 @@ Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
 
     paper-input iron-icon:hover {
       color: #FFFFFF;
+
+      @apply(--item-list-crudbox-icon-hover);
     }
 
     paper-input[focused] {
       color: #FFFFFF;
+
+      @apply(--item-list-crudbox-input-focus);
     }
 
     flex-column.search-column {
