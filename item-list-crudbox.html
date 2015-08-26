@@ -171,7 +171,7 @@ Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
       background: #FAFAFA;
       overflow: hidden;
       @apply(--layout-flex);
-      
+
       @apply(--item-list-crudbox-list);
     }
 
@@ -354,8 +354,8 @@ Box with basic CRUD and filter actions for `item-list`. Build with Polymer.
 
     _onItemsFiltered: function(e) {
       var filteredItems = e.detail;
-      this._showsItems = filteredItems.length > 0;
       this._hasItems = this.list.items.length > 0;
+      this._showsItems = filteredItems.length > 0 || !this._hasItems;
 
       for (var i in filteredItems) {
         if (this.get(this.list.paths.id, filteredItems[i]) == this.list.selection) {
